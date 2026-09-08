@@ -1,0 +1,26 @@
+## ============================================================
+## nginx.conf.tftpl —— Terraform 模板文件（templatefile() 函数使用）
+## ------------------------------------------------------------
+## 文件名以 .tftpl 结尾是 Terraform 官方推荐的模板文件后缀约定
+## （不是强制要求，但能让编辑器/审阅者一眼认出这是模板而非普通配置文件）。
+## 占位符（形如 dollar-brace-变量名-brace）会被 main.tf 里 templatefile() 调用时传入的变量替换。
+## ============================================================
+
+server {
+    listen 80;
+
+    location / {
+        # upstream_host 由 Terraform 注入：nginx 通过容器名（Docker 内置 DNS）
+        # 找到同一个 user-defined network 里的 webapp 容器，
+        # 完全不需要知道对方的真实 IP 地址——这正是
+        # docs/06-kubernetes-basics.md 里 Service 解决的问题在 Docker 网络里的简化版本。
+        proxy_pass http://${upstream_host};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /nginx-health {
+        return 200 "nginx ok, environment=${environment}\n";
+        add_header Content-Type text/plain;
+    }
+}

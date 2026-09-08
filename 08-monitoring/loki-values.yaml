@@ -1,0 +1,81 @@
+# ============================================================
+# loki-values.yaml
+# ------------------------------------------------------------
+# 把 Loki 配置成本地学习最简单的形态：单二进制模式 + 本地文件系统存储，
+# 不需要额外的对象存储（S3/GCS/Azure Blob）——这是官方 Chart 提供的
+# 三种部署模式（SingleBinary/SimpleScalable/Distributed）里，
+# 专门为"小规模、无需高可用"场景设计的一种。
+# ============================================================
+
+deploymentMode: SingleBinary
+
+loki:
+  auth_enabled: false
+
+  useTestSchema: true
+  # Loki 要求显式声明"索引 schema"（决定日志按什么方式分片存储/索引，
+  # 真实生产环境需要根据数据量、保留策略仔细规划）。教学环境不需要
+  # 关心这些细节，Chart 提供了 useTestSchema 作为"给我一个能跑起来的
+  # 测试用默认 schema"的快捷开关（这是本项目实测踩到的坑：
+  # 不加这一项，Loki 会直接拒绝启动并报错要求提供 schema_config）。
+  # 真实多租户环境下 Loki 要求每个请求带 X-Scope-OrgID 头区分租户，
+  # 本地单人学习环境关闭它，简化 curl 命令。
+
+  commonConfig:
+    replication_factor: 1
+    # 单副本、单节点场景不需要任何复制因子
+
+  storage:
+    type: filesystem
+    # 日志数据直接存本地文件系统（存在 Pod 的存储卷里），
+    # 对比"真实生产环境几乎必然使用 S3 等对象存储"，这是本地学习
+    # 特有的简化——但 Loki 的查询/写入 API 行为和真实环境完全一致。
+
+singleBinary:
+  replicas: 1
+  persistence:
+    enabled: true
+    size: 2Gi
+    # 注意：这里不能设成 false！Loki 容器默认以只读根文件系统运行
+    # （安全加固的常见做法），/var/loki 必须靠一个真正挂载的卷
+    # （无论是 PVC 还是 emptyDir）才能写入数据。本项目实测：
+    # 设成 false 会导致容器完全没有 /var/loki 的写入路径，
+    # 报 "mkdir /var/loki: read-only file system" 直接崩溃。
+    # 这里用一个小容量的 PVC 满足这个要求，教学环境重新部署
+    # PVC 会是全新的，等效于"没有历史数据"。
+
+# --------------------------------------------------------------
+# 重要：仅仅设置 deploymentMode: SingleBinary 并不够！
+# 这个 Chart 默认给 SimpleScalable 模式的三个组件（read/write/backend）
+# 各配了 1 个副本，即使切换了 deploymentMode，这三个默认值不会
+# 自动清零——Chart 内置的校验逻辑会发现"单二进制模式和三组件模式
+# 同时都配置了非零副本"，直接报错拒绝渲染
+# （这是本项目实测踩到的坑，报错信息是
+# "You have more than zero replicas configured for both the single
+# binary and simple scalable targets"）。必须显式把这三个组件的
+# 副本数都设为 0，明确表达"只用 SingleBinary 这一种形态"。
+# --------------------------------------------------------------
+read:
+  replicas: 0
+write:
+  replicas: 0
+backend:
+  replicas: 0
+
+# 以下几个组件是这个 Chart 默认附带、但本章不需要的辅助功能，
+# 关闭它们可以减少资源占用、减少无关的失败可能性：
+test:
+  enabled: false # Chart 自带的 helm test 探针 Pod
+
+lokiCanary:
+  enabled: false # 持续自检读写延迟的金丝雀 DaemonSet，教学环境不需要
+
+# memcached based 的查询缓存，默认各自带有上百 MB 到 1GB+ 的内存请求，
+# 在只有几个 CPU/几 GB 内存的本地 Kind 节点上很容易导致 Pending
+# （本项目实测：chunks-cache 因为 "Insufficient memory" 一直调度不上）。
+# 这两层缓存只影响查询性能，不影响数据写入/基本查询的正确性，
+# 教学环境直接关闭。
+resultsCache:
+  enabled: false
+chunksCache:
+  enabled: false

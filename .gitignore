@@ -1,0 +1,121 @@
+# ============================================================
+# Terraform Local Cloud Learning Lab — .gitignore
+# ------------------------------------------------------------
+# 这个文件解释"为什么忽略"，而不仅仅是"忽略什么"。
+# 请阅读注释，理解 Terraform 生态里哪些文件该进 Git、哪些不该。
+# ============================================================
+
+# --------------------------------------------------------------
+# .terraform/ 目录
+# 这是 `terraform init` 在每个模块目录下生成的本地缓存目录，内容包括：
+#   - 下载下来的 Provider 二进制插件（可能几十到上百 MB）
+#   - 下载下来的 module 副本（如果 module source 是远程地址）
+# 这个目录是"可以随时重新生成的派生产物"，不是源代码，
+# 所以绝对不应该提交到 Git —— 就像 node_modules/ 之于 npm 项目一样。
+# --------------------------------------------------------------
+**/.terraform/
+.terraform/
+
+# --------------------------------------------------------------
+# *.tfstate / *.tfstate.*
+# State 文件记录了 Terraform 管理的真实资源的当前状态快照。
+# 不提交它的原因有三个：
+#   1. State 文件里经常包含明文敏感信息（密码、密钥、连接串），
+#      即便你在 variable 上写了 sensitive = true 也无法避免
+#      （这一点在 09-vault 章节会专门验证给你看）。
+#   2. State 是"环境相关"的——你电脑上的 State 描述的是你电脑上
+#      的 Docker / Kind / Minikube 资源，对其他学习者毫无意义，
+#      甚至会产生误导（他们 apply 时会以为这些资源已经存在）。
+#   3. 多人共享同一份 State 文件会导致并发冲突——这也是为什么真实
+#      生产环境要用远程 Backend（S3 + DynamoDB Lock、Terraform Cloud
+#      等）而不是靠 Git 来"共享"State。
+# --------------------------------------------------------------
+*.tfstate
+*.tfstate.*
+
+# Terraform 崩溃时生成的调试日志，同样是本地产物。
+crash.log
+crash.*.log
+
+# --------------------------------------------------------------
+# *.tfvars 和 *.auto.tfvars（但保留 .example 版本）
+# tfvars 文件经常被学习者用来填入"看似无害"但其实是本地专属的值
+# （端口号、路径、临时密码）。为了防止有人不小心把真实凭证提交上来，
+# 这里统一忽略，仓库里只保留 *.tfvars.example 作为模板。
+# --------------------------------------------------------------
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# --------------------------------------------------------------
+# .terraform.lock.hcl —— 注意！这个文件【不】被忽略。
+# 这是本 .gitignore 里最容易被误解的一条规则，所以专门解释：
+#
+# lock 文件记录了 `terraform init` 实际解析并下载的 Provider
+# 精确版本号和校验和（checksum）。它的作用类似 package-lock.json
+# 或 Cargo.lock —— 保证"你在这台机器上 init"和"半年后另一台机器上
+# init"用的是完全相同版本的 Provider，从而避免"我这里能跑，
+# 你那里跑不了"的 Provider 版本漂移问题。
+#
+# 所以：.terraform/（二进制缓存）忽略，
+#       .terraform.lock.hcl（版本清单）保留并提交。
+# --------------------------------------------------------------
+!.terraform.lock.hcl
+
+# --------------------------------------------------------------
+# Terraform 生成的其它本地产物
+# --------------------------------------------------------------
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# 一些实验会用 `terraform plan -out=plan.tfplan` 保存二进制计划文件，
+# 这个文件里同样可能包含敏感值，且体积大、纯本地产物。
+*.tfplan
+*.tfplan.json
+
+# --------------------------------------------------------------
+# 编辑器 / 操作系统产物
+# --------------------------------------------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+Thumbs.db
+Desktop.ini
+*.swp
+
+# --------------------------------------------------------------
+# 各技术栈的本地运行产物（Kind/Minikube/kubeconfig 导出、Helm 打包等）
+# --------------------------------------------------------------
+kubeconfig*.yaml
+*.kubeconfig
+*.tgz
+helm-charts/*.tgz
+
+# LocalStack 本地持久化数据目录（07-localstack 章节会用到）
+07-localstack/**/localstack-data/
+**/localstack-data/
+
+# Vault 本地开发模式的临时数据
+09-vault/**/vault-data/
+**/vault-data/
+
+# 01-terraform-basics 章节用 local_file 资源生成的教学产物，
+# 属于"apply 后才出现的运行时结果"，不属于源代码。
+01-terraform-basics/generated/
+12-state-management/03-workspace/generated/
+
+# 07-localstack 和 14-full-local-cloud 章节里，data "archive_file"
+# 在 apply 时自动从 handler.py 打包生成的 Lambda 部署包——
+# 这是派生产物，源代码是 handler.py，不需要提交打包后的 zip。
+07-localstack/lambda/handler.zip
+14-full-local-cloud/lambda/handler.zip
+
+# 日志与临时文件
+*.log
+tmp/
+.tmp/

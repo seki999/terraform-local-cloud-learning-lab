@@ -1,0 +1,26 @@
+# ============================================================
+# terraform.tfvars.example
+# ------------------------------------------------------------
+# 这是一个"示例变量文件"。真正生效的文件名必须是 terraform.tfvars
+# （或 *.auto.tfvars），但那个真实文件被 .gitignore 排除、不会提交到 Git
+# ——原因见根目录 .gitignore 里的注释。
+#
+# 使用方法：
+#   Copy-Item terraform.tfvars.example terraform.tfvars
+# 然后按需修改下面的值，再执行 terraform plan 观察变化。
+# ============================================================
+
+environment = "test"
+
+team_members = ["alice", "bob", "carol", "dave"]
+
+server_count = 5
+
+# 注意：真实项目中绝不应该像这样把密码明文写进 tfvars 文件！
+# 这里仅用于教学演示 sensitive 变量的行为。
+admin_password = "example-token"
+
+extra_tags = {
+  owner = "learning-lab"
+  stage = "chapter-01"
+}

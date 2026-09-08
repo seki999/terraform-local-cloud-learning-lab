@@ -1,0 +1,15 @@
+# 复制为 terraform.tfvars 后按需修改：
+#   Copy-Item terraform.tfvars.example terraform.tfvars
+
+namespace_name = "terraform-learning"
+environment    = "dev"
+replica_count  = 2
+
+welcome_message = "Hello from Terraform + Kubernetes (Minikube)!"
+
+api_key = "example-token" # 教学占位符，非真实密钥
+
+pvc_size      = "1Gi"
+storage_class = "standard"
+
+ingress_host = "web.local.learning-lab"

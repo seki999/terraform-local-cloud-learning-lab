@@ -1,0 +1,84 @@
+# ============================================================
+# kube-prometheus-stack-values.yaml
+# ------------------------------------------------------------
+# kube-prometheus-stack 是社区里最主流的"一站式"监控栈 Chart：
+# 一次安装同时拉起 Prometheus + Grafana + Alertmanager +
+# node-exporter + kube-state-metrics，并且互相之间的 Data Source/
+# 抓取目标都已经预先接好线——这也是为什么本项目选择用这一个 Chart
+# 来同时满足"部署 Prometheus"和"部署 Grafana"的要求，而不是
+# 分别安装两个互相不认识对方的独立 Chart，那样还要多花很大力气
+# 手工把 Grafana 的 Data Source 指向 Prometheus。
+#
+# 这里只覆盖少数几项，让它能在资源有限的本地 Kind 集群上跑起来。
+# ============================================================
+
+prometheus:
+  prometheusSpec:
+    retention: 6h
+    # 学习环境不需要长期保留指标数据，缩短保留时间省内存/磁盘。
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 20m
+        memory: 32Mi
+
+grafana:
+  # admin 密码通过 Terraform 变量传入（main.tf 里用 set_sensitive 覆盖），
+  # 这里不直接写死，避免明文密码出现在这份会被提交到 Git 的 values 文件里。
+  #
+  # -------------------------------------------------------------
+  # 资源限制：这里特意给得比"看起来够用"更宽松一些，这是本项目
+  # 实测踩过的另一半教训——最初给的 limits.cpu=200m 导致 Grafana
+  # 首次启动（内部有一大批 App Platform / 资源历史相关的初始化
+  # 工作要做）被 CPU 限流拖得极慢，超出探针等待时间，陷入
+  # "刚要就绪就被杀、重启后从头再来"的循环，即使把
+  # initialDelaySeconds 调到 180 秒依然不够。这台机器的 Kind 节点
+  # 实际有 4 核 CPU 可用（`kubectl describe node` 能确认），
+  # 限制到 200m（0.2 核）显然过于保守——真实教训是：
+  # **首次启动缓慢，未必是"要等更久"，也可能是"CPU 被限流了，
+  # 给够资源反而更快"，两种情况要分开排查，不能一律靠调大
+  # initialDelaySeconds 解决。**
+  # -------------------------------------------------------------
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+
+  service:
+    type: NodePort
+    # 方便本地用 NodePort 直接访问 Grafana，简化验证步骤。
+
+  # 探针超时时间同样放宽，两道防线一起解决启动慢的问题：
+  # 一是上面给足 CPU 让启动本身更快，二是这里给探针留出充裕的
+  # 等待窗口，双重保险应对不同性能的本地机器。
+  livenessProbe:
+    initialDelaySeconds: 120
+    failureThreshold: 15
+    periodSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 120
+    failureThreshold: 15
+    periodSeconds: 10
+
+nodeExporter:
+  enabled: true
+  # node-exporter 以 DaemonSet 形式运行（回顾 05-kubernetes/08-daemonset
+  # 章节），每个 Node 一份，负责暴露宿主机层面的 CPU/内存/磁盘指标。
+
+kubeStateMetrics:
+  enabled: true
+  # kube-state-metrics 负责把 Kubernetes 对象本身的状态
+  # （比如 Deployment 的期望/实际副本数）转换成 Prometheus 指标，
+  # 和 node-exporter（机器层面指标）互补。

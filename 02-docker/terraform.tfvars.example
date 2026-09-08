@@ -1,0 +1,17 @@
+# 复制为 terraform.tfvars 后按需修改：
+#   Copy-Item terraform.tfvars.example terraform.tfvars
+
+environment = "dev"
+
+postgres_db       = "app_db"
+postgres_user     = "app_user"
+postgres_password = "example-token" # 教学占位符，非真实密码
+
+restart_policy = "unless-stopped"
+
+# 动手练习会引导你把这里改成两项，观察 dynamic block 的效果
+nginx_port_mappings = [
+  { internal = 80, external = 8080 }
+]
+
+keep_images_locally = true

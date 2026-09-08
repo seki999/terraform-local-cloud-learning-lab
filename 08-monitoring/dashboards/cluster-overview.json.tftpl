@@ -1,0 +1,54 @@
+{
+  "title": "Learning Lab - Cluster Overview",
+  "uid": "learning-lab-cluster-overview",
+  "schemaVersion": 39,
+  "timezone": "browser",
+  "time": { "from": "now-1h", "to": "now" },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Up 目标数量（按 job 分组）",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${prometheus_uid}" },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus_uid}" },
+          "expr": "sum(up) by (job)",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "节点 CPU 使用率",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${prometheus_uid}" },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus_uid}" },
+          "expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) by (instance)",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "logs",
+      "title": "Loki 日志流（近 1 小时）",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 9 },
+      "datasource": { "type": "loki", "uid": "${loki_uid}" },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "${loki_uid}" },
+          "expr": "{job=~\".+\"}",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+# ============================================================
+# kind-config.yaml —— Kind 集群拓扑定义
+# ------------------------------------------------------------
+# Kind（Kubernetes IN Docker）的核心思路：每一个"节点"其实就是
+# 一个 Docker 容器，容器里装了完整的 kubelet + containerd，
+# 伪装成一台独立的 Kubernetes Node。这让你能在一台笔记本上，
+# 用几个 Docker 容器就拼出一个"看起来"是多节点的集群——
+# 这是理解 nodeSelector / 调度 / 多副本分布这些概念的最佳沙盒。
+#
+# 下面定义 1 个 control-plane 节点 + 2 个 worker 节点。
+# ============================================================
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+
+nodes:
+  - role: control-plane
+    # control-plane 节点运行 API Server / Scheduler / Controller Manager / etcd，
+    # 默认情况下 Kubernetes 会给 control-plane 节点打上污点（taint），
+    # 阻止普通业务 Pod 被调度上去——这和真实生产集群的做法一致
+    # （control-plane 节点应该只承载控制面组件，不跑业务负载）。
+
+  - role: worker
+    labels:
+      # 给这个 worker 节点打一个自定义标签，供 04-kind 章节的
+      # nodeSelector 实验使用：我们会创建一个 Deployment，
+      # 要求它的 Pod 只能调度到 disktype=ssd 的节点上。
+      disktype: ssd
+      zone: a
+
+  - role: worker
+    labels:
+      disktype: hdd
+      zone: b

@@ -1,0 +1,27 @@
+# ============================================================
+# ingress-nginx-values.yaml
+# ------------------------------------------------------------
+# 这是传给 Helm Chart 的 values 覆盖文件——每个 Helm Chart 都自带一份
+# 默认 values.yaml（可以用 `helm show values ingress-nginx/ingress-nginx`
+# 查看完整默认值），这里只需要覆盖我们关心的少数几项，
+# 其余全部沿用 Chart 作者提供的默认值。
+# ============================================================
+
+controller:
+  replicaCount: 1
+  # 本地单机学习环境资源有限，1 个副本足够；生产环境通常会设 2+
+  # 并配合 PodAntiAffinity（见 04-kind）避免单点故障。
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 90Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  service:
+    type: NodePort
+    # Kind 集群没有云负载均衡器，NodePort 是最简单的验证方式
+    # （对比 03-minikube 用 addon 方式安装的 ingress-nginx，
+    # 那里默认也是靠端口转发/tunnel 验证，殊途同归）。
