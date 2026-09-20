@@ -131,3 +131,47 @@ helm version
 - PowerShell 执行策略拦截脚本
 - Windows 路径分隔符导致的 Terraform 报错
 - WSL2 相关的网络/性能问题
+
+
+## 6. 网络/协议章节额外工具
+
+完成基础安装后，建议先运行仓库根目录的一键检查：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\preflight.ps1
+```
+
+如果要学习 `10-networking/`、`15-protocol-stack/`、`16-network-commands/`，
+WSL2 的 Ubuntu 中建议安装：
+
+```bash
+sudo apt update
+sudo apt install -y iproute2 iputils-ping dnsutils traceroute tcpdump netcat-openbsd nftables iperf3 openssl curl python3
+```
+
+SNMP / Syslog / VPN 章节按需追加：
+
+```bash
+sudo apt install -y snmp snmptrapd rsyslog wireguard-tools
+```
+
+Containerlab 和 FRRouting 属于高级实验，可以以后再装，不影响前面的主线。
+
+完整运行前检查见 [11-local-run-checklist.md](11-local-run-checklist.md)。
+
+## 7. WSL 默认发行版
+
+运行：
+
+```powershell
+wsl -l -v
+```
+
+`10-networking/03-linux-routing` 默认会使用 WSL 的默认 Linux 发行版。
+建议默认发行版是 Ubuntu（WSL2）。
+
+如需修改：
+
+```powershell
+wsl --set-default Ubuntu
+```
