@@ -62,6 +62,18 @@ Optional  Proxmox / libvirt             optional/
 
 详细顺序见 [docs/00-learning-roadmap.md](docs/00-learning-roadmap.md)。
 
+## 开始前先做 Preflight
+
+第一次运行仓库前，先在根目录执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\preflight.ps1
+```
+
+它会检查 Terraform、Docker、kubectl、Minikube、Kind、Helm、WSL2、默认 WSL Linux、网络命令以及常用端口冲突，但**不会修改你的电脑**。
+
+完整清单见 [docs/11-local-run-checklist.md](docs/11-local-run-checklist.md)。
+
 ## 网络学习分成三条互补主线
 
 ### 10-networking
