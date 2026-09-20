@@ -135,7 +135,7 @@ terraform state list
 1. 把 frontend 的 backend Service 名写错，使用 DNS/Endpoints 定位。
 2. 临时缩容 backend 到 0，观察 Service 仍存在但 Endpoints 消失。
 3. 修改 PostgreSQL Service port，使用 `ss` / Service/Endpoints 对照定位。
-4. 给 namespace 增加 NetworkPolicy，只允许指定流量。
+4. 创建 NetworkPolicy 并观察资源配置；如果仍使用 Kind 默认 kindnet，请不要把“blocked client 仍可访问”判定为失败——真正验证流量隔离需要换成支持 NetworkPolicy enforcement 的 CNI（如 Calico）。
 
 排查顺序统一使用：
 
