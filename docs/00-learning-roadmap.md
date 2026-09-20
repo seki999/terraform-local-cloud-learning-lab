@@ -1,68 +1,81 @@
 # 00 - 学习路线总览（Learning Roadmap）
 
-本文档回答一个问题：**"我应该按什么顺序学，每个阶段要达到什么程度才能进入下一阶段？"**
+本路线把“真实本地基础设施能力”放在主线，把 LocalStack 调整为可选 AWS API 模拟专题。
 
-## 路线图
+## 主线
 
 ```mermaid
 flowchart TD
-    S1["Stage 1\nTerraform Fundamentals\n01-terraform-basics/"]
-    S2["Stage 2\nTerraform + Docker\n02-docker/"]
-    S3["Stage 3\nTerraform + Minikube\n03-minikube/"]
-    S4["Stage 4\nTerraform + Kind\n04-kind/"]
-    S5["Stage 5\nKubernetes 深入\n05-kubernetes/"]
-    S6["Stage 6\nTerraform + Helm\n06-helm/"]
-    S7["Stage 7\nTerraform + LocalStack\n07-localstack/"]
-    S8["Stage 8\n本地监控系统\n08-monitoring/"]
-    S9["Stage 9\nTerraform + Vault\n09-vault/"]
-    S10["Stage 10\nTerraform Modules\n11-modules/"]
-    S11["Stage 11\nState 管理进阶\n12-state-management/"]
-    S12["Stage 12\nFull Local Cloud\n14-full-local-cloud/"]
+    S1["Stage 1\nTerraform Fundamentals"]
+    S2["Stage 2\nTerraform + Docker"]
+    S3["Stage 3\nMinikube"]
+    S4["Stage 4\nKind"]
+    S5["Stage 5\nKubernetes"]
+    S6["Stage 6\nHelm"]
+    N["Networking Core\nLinux routing / firewall / DNS / LB"]
+    S8["Monitoring"]
+    S9["Vault"]
+    S10["Modules"]
+    S11["State"]
+    S12["Full Local Cloud"]
 
-    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> S8 --> S9 --> S10 --> S11 --> S12
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> N --> S8 --> S9 --> S10 --> S11 --> S12
 ```
 
-穿插专题（不阻塞主线，随时可以插入学习）：
+## 可选专题
 
-- `10-networking/` —— 建议在 Stage 4（Kind）之后阅读，此时你已经见过 Docker 网络和
-  Kubernetes Service，网络专题会帮你把两者串起来理解。
-- `13-testing/` —— 建议在 Stage 10（Modules）之后阅读，因为测试的对象通常是 Module。
-- `optional/proxmox`、`optional/libvirt` —— 任何时候都可以看，但不强制运行。
+- `07-localstack/`：AWS API 模拟。适合学习 AWS Provider/S3/Lambda/DynamoDB/SQS 等调用方式；不再是主线前置条件。
+- `10-networking/07-containerlab-frr/`：高级动态路由实验。
+- `13-testing/`：Terraform 测试。
+- `optional/proxmox`、`optional/libvirt`：虚拟机/私有云方向。
 
-## 每个 Stage 的"毕业标准"
+## 毕业标准
 
 | Stage | 你应该能做到 |
 |---|---|
-| 1. Terraform Fundamentals | 独立完成 init → plan → apply → destroy 全流程；能解释 Provider / Resource / State 是什么；能说出 `count` 和 `for_each` 的区别 |
-| 2. Docker | 用 Terraform 创建一个 network + 多个 container，并让它们互相通信；能画出资源依赖图 |
-| 3. Minikube | 用 Terraform Kubernetes Provider 部署一个 Deployment + Service + Ingress，浏览器能访问 |
-| 4. Kind | 理解单节点与多节点的区别；能用 nodeSelector 把 Pod 调度到指定节点 |
-| 5. Kubernetes 深入 | 能独立解释 05-kubernetes/ 下 13 个子实验涉及的每个对象的作用 |
-| 6. Helm | 理解 Helm Release 与裸 Kubernetes manifest 的区别；用 Terraform 部署 ingress-nginx + kube-prometheus-stack |
-| 7. LocalStack | 理解 LocalStack 与真实 AWS 的异同边界；跑通一个 API Gateway → Lambda → DynamoDB → SQS 的完整链路 |
-| 8. Monitoring | 能用 Terraform 管理 Grafana 的 Data Source / Dashboard / Alert；理解 Metrics vs Logs vs Alerts |
-| 9. Vault | 理解为什么 `sensitive = true` 不能保护 State；能用 Terraform 管理 Vault Policy 和 Mount |
-| 10. Modules | 能设计一个多次复用的 Module，理解 Module 的 input/output/依赖 |
-| 11. State 管理 | 能完成一次"先手工建资源、再 import 进 Terraform"的实验；理解 `moved` block |
-| 12. Full Local Cloud | 能用 Terraform 统一编排 Kind + LocalStack + Vault + Monitoring，并完整 destroy |
+| Terraform | 独立完成 init → plan → apply → destroy，并理解 State/Provider/依赖图 |
+| Docker | 创建网络、容器、卷并解释隔离边界 |
+| Kubernetes | 理解 Pod/Service/Ingress/PVC/RBAC/NetworkPolicy |
+| Networking | 能解释 CIDR、Gateway、Route、NAT、Firewall、DNS、LB、VPN，并用 Linux 命令定位网络故障 |
+| Monitoring | 理解 Metrics / Logs / Alerts，并能部署本地观测组件 |
+| Vault | 理解 Secret source of truth 与 Terraform State 风险 |
+| Modules/State | 能设计可复用 Module，完成 import/moved/workspace 等操作 |
+| Full Local Cloud | 用 Terraform 统一编排 Kubernetes + Vault，并能从网络到应用完成验证与销毁 |
 
-## 如果你时间有限
-
-最小可行学习路径（能建立正确心智模型，但不追求覆盖全部细节）：
+## 网络专题的建议顺序
 
 ```text
-01-terraform-basics → 02-docker → 03-minikube → 05-kubernetes(挑 4-5 个子实验)
-→ 07-localstack → 11-modules
+10-networking/
+01 docker isolation
+02 CoreDNS
+03 Linux namespace routing
+04 firewall/NAT
+05 load balancer
+06 VPN
+08 troubleshooting
+07 Containerlab + FRRouting (advanced)
 ```
 
-## 如何使用每一章
+## 时间有限时
 
-1. 先读该章 `README.md` 的"本章目标"和"架构图"，建立整体印象；
-2. 读"核心概念"部分——**不要跳过**，这是本课程和"抄命令"式教程的核心区别；
-3. 打开 `.tf` 文件，对照 README 里的"代码讲解"逐段理解，而不是从头看到尾；
-4. 按"执行步骤"动手跑一遍；
-5. 按"验证方法"确认结果符合预期；
-6. 修改一个变量、重新 `plan`，观察 Terraform 如何计算 diff；
-7. 回答"思考题"，做"动手练习"；
-8. `terraform destroy`，确认环境完全清理干净；
-9. 有余力再挑战"进阶挑战"。
+```text
+01-terraform-basics
+ -> 02-docker
+ -> 04-kind
+ -> 05-kubernetes (Service / Ingress / NetworkPolicy)
+ -> 10-networking/03-linux-routing
+ -> 10-networking/04-firewall-nat
+ -> 11-modules
+ -> 14-full-local-cloud
+```
+
+LocalStack 不再是最小路径的必修项。
+
+## 每章学习方法
+
+1. 先画架构与数据流。
+2. 再读 Terraform/配置代码。
+3. apply 后用独立命令验证，不只相信 Terraform 输出。
+4. 主动制造一个故障。
+5. 按 Link → IP → Route → Firewall → DNS → Port → Application 排查。
+6. destroy 后确认资源完全清理。
