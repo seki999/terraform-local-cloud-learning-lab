@@ -1,6 +1,6 @@
 # Terraform Local Cloud Learning Lab
 
-> 一个完全在本地运行、尽量不依赖真实收费云的 **Terraform + Kubernetes + Docker + Linux Networking + Protocol Stack + DevOps 中文实践课程**。
+> 一个完全在本地运行、尽量不依赖真实收费云的 **Terraform + Kubernetes + Docker + Linux Networking + Protocol Stack + Network Commands + DevOps 中文实践课程**。
 
 ## 项目定位
 
@@ -14,6 +14,7 @@
 - Load Balancer / VPN
 - OSI / TCP-IP / Ethernet / ARP / IP / ICMP / TCP / UDP
 - HTTP / TLS / DNS / SNMP / Syslog / HTTP2 / gRPC / QUIC
+- 网络命令：ip / route / ping / traceroute / dig / ss / curl / openssl / tcpdump / nft / netsh
 - tcpdump / Wireshark / tshark
 - Containerlab / FRRouting
 - Prometheus / Grafana / Loki
@@ -30,6 +31,7 @@
 | 零云账单主线 | 主线不要求 AWS/Azure/GCP/OCI 账号 |
 | 真实数据面 | 网络章节优先使用 Linux namespace、veth、route、nftables、tcpdump |
 | 协议可观察 | 不只记协议定义，要通过抓包看到 Header、握手、端口和失败现象 |
+| 命令可操作 | 每个网络概念都尽量配套 Windows/Linux 命令进行验证 |
 | 可重复 | Terraform 管理的实验应能 apply / verify / destroy |
 | 云概念映射 | 每个本地组件都解释它与 VPC/Subnet/Route/NAT/LB/VPN 等概念的关系 |
 | 排障优先 | 不只学习“怎么配”，还要学习“坏了怎么查” |
@@ -46,6 +48,7 @@ Stage 6   Helm                          06-helm/
 
 Core A    Linux / Cloud Networking      10-networking/
 Core B    Protocol Stack                15-protocol-stack/
+Core C    Network Command Toolbox       16-network-commands/
 
 Stage 8   Monitoring                    08-monitoring/
 Stage 9   Vault                         09-vault/
@@ -59,132 +62,103 @@ Optional  Proxmox / libvirt             optional/
 
 详细顺序见 [docs/00-learning-roadmap.md](docs/00-learning-roadmap.md)。
 
-## 网络专题
+## 网络学习分成三条互补主线
 
-`10-networking/` 是 Local Network Engineering Lab：
+### 10-networking
 
-```text
-01-docker-network-isolation
-02-coredns
-03-linux-routing
-04-firewall-nat
-05-load-balancer
-06-vpn
-07-containerlab-frr
-08-network-troubleshooting
-```
+回答：
 
-其中 `03-linux-routing` 会在 WSL2 Linux 内真正创建多子网路由环境。
+> 网络拓扑怎么搭？路由、防火墙、NAT、LB、VPN 怎么工作？
 
-## 协议栈专题
+### 15-protocol-stack
 
-`15-protocol-stack/` 把“网络能通”继续推进到“到底是什么协议在通信”：
+回答：
 
-```text
-01-osi-tcpip
-02-ethernet-arp
-03-ip-icmp
-04-tcp
-05-udp
-06-dns
-07-http
-08-tls-https
-09-snmp
-10-syslog
-11-modern-protocols
-12-packet-analysis
-13-protocol-troubleshooting
-```
+> ARP/IP/TCP/TLS/HTTP/SNMP/Syslog 到底怎么通信？
 
-这个专题不是背 OSI 七层，而是用：
+### 16-network-commands
+
+回答：
+
+> 我怎样在 Windows/Linux 里观察、验证、配置和排查这些网络现象？
+
+这三部分应配合学习。
+
+## Network Command Toolbox
+
+`16-network-commands/` 按“你想检查什么”分类命令：
 
 ```text
-ARP -> IP -> ICMP -> TCP/UDP -> DNS -> TLS -> HTTP
+01 interface / IP
+02 routing / neighbor
+03 connectivity / path
+04 DNS
+05 port / socket
+06 HTTP / TLS
+07 packet capture
+08 firewall / NAT
+09 Wi-Fi
+10 performance
+11 cheatsheet
 ```
 
-这样的真实链路来学习。
+特别强调：
 
-同时覆盖监控系统常见的：
+> 网络命令并不都等于“协议命令”。
+
+例如：
 
 ```text
-SNMP GET / TRAP
-Syslog
-UDP 161 / 162 / 514
-TCP/TLS Syslog
+ping              -> 直接使用 ICMP
+dig               -> 直接查询 DNS
+curl              -> HTTP/HTTPS 客户端
+openssl s_client  -> TLS 诊断
+snmpwalk          -> SNMP
 ```
 
-并用 tcpdump / Wireshark 验证。
+而：
 
-## 本地概念与云概念
+```text
+ip addr     -> 操作系统接口/IP 状态
+ip route    -> 内核路由表
+ss          -> socket 状态
+ip neigh    -> neighbor cache
+nft         -> firewall/NAT policy
+netsh wlan  -> Windows Wi-Fi 状态
+```
 
-| 本地技术 | 云端心智模型 |
-|---|---|
-| Linux namespace / Docker network | VPC/VNet 隔离 |
-| CIDR | VPC/Subnet CIDR |
-| veth / NIC | ENI / NIC |
-| `ip route` | Route Table |
-| Linux router | VPC Router / Transit routing |
-| nftables | Security Group / NACL 的底层类比 |
-| SNAT / masquerade | NAT Gateway |
-| CoreDNS | Private DNS / Service Discovery |
-| HAProxy / nginx | ALB / NLB |
-| WireGuard | Site-to-Site VPN |
-| FRRouting | OSPF/BGP/动态路由 |
-| TCP/TLS/HTTP | LB、Ingress、API 通信的底层协议链 |
-| SNMP/Syslog | 网络监控与日志采集 |
-| Kind | 本地 Kubernetes / EKS 类比 |
-| Vault | Secret Manager 类能力 |
-| Prometheus/Grafana | Cloud monitoring 类能力 |
-
-这里强调的是概念与数据流映射，不代表具体云产品与本地工具 1:1 等价。
-
-## 推荐工具
-
-主要工具：
-
-- Terraform
-- Docker Desktop
-- WSL2
-- Git
-- kubectl
-- Minikube / Kind
-- Helm
-
-网络/协议实验还会用到：
-
-- iproute2
-- nftables
-- tcpdump
-- Wireshark / tshark
-- dig / nslookup
-- curl
-- openssl
-- nc / ncat
-- WireGuard
-- Containerlab
-- FRRouting
+它们主要是在查看或配置操作系统的网络栈。
 
 ## 推荐的排障顺序
-
-遇到“服务访问不了”，统一按下面顺序：
 
 ```text
 Link
  -> IP/CIDR
  -> Route/Gateway
  -> ARP/Neighbor
+ -> ICMP / Path
  -> Firewall/NAT
  -> DNS
- -> TCP/UDP
+ -> TCP/UDP socket
  -> TLS
  -> HTTP/Application
+ -> Packet Capture
 ```
 
-如果是监控协议，再进一步检查：
+对应命令大致是：
 
 ```text
-SNMP version/OID/community/user
-Syslog transport/port/RFC format/parser
+ip link / Get-NetAdapter
+ip addr / ipconfig
+ip route / route print
+ip neigh / arp -a
+ping / traceroute / tracert
+nft / Get-NetFirewallRule
+dig / Resolve-DnsName
+ss / Test-NetConnection
+openssl s_client
+curl -v
+tcpdump / Wireshark
 ```
 
 目标是形成工程化排障习惯，而不是随机修改配置。
@@ -195,12 +169,12 @@ Syslog transport/port/RFC format/parser
 
 ## 安全说明
 
-仓库里的 Token、密码、API Key、SNMP community 等均为本地教学占位值，不应在生产环境复用。生产环境应优先采用更安全的认证和加密方式，例如 SNMPv3、TLS 和受控 Secret 管理。
+仓库里的 Token、密码、API Key、SNMP community 等均为本地教学占位值，不应在生产环境复用。
 
 ## 项目方向
 
 这个项目现在更接近一个：
 
-> **Terraform + Kubernetes + Linux Networking + Protocol Engineering + Local Cloud Learning Lab**
+> **Terraform + Kubernetes + Linux Networking + Protocol Engineering + Network Troubleshooting + Local Cloud Learning Lab**
 
-目标不只是会部署资源，而是能够解释“一条请求从应用到网络再到后端究竟经过了什么”，并在出问题时有系统地定位根因。
+目标不只是会部署资源，而是能够解释“一条请求从应用到网络再到后端究竟经过了什么”，并且知道应该用什么命令去证明自己的判断。
