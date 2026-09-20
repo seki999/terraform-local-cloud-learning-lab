@@ -80,7 +80,7 @@ if ($hasWsl) {
     wsl.exe -l -v
     Write-Host ""
 
-    wsl.exe -e sh -lc "printf '%s' \"${ID:-unknown}\"" *> $null
+    wsl.exe -e sh -lc "exit 0" *> $null
     if ($LASTEXITCODE -ne 0) {
         Write-Fail "The default WSL distribution cannot run a normal Linux shell. Install Ubuntu and make it the default distro."
     } else {
