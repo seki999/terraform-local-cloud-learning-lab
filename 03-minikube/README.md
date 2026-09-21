@@ -69,7 +69,8 @@ flowchart TB
 ├── outputs.tf
 ├── terraform.tfvars.example
 └── scripts/
-    └── start-minikube.ps1   <- 独立于 Terraform 的集群启动脚本
+    ├── start-minikube.ps1   <- 独立于 Terraform 的集群启动脚本
+    └── open-dashboard.ps1   <- 打开 Minikube / Kubernetes Web Dashboard
 ```
 
 ## 六、Terraform 代码讲解
@@ -122,7 +123,68 @@ terraform output curl_via_ingress_command
 # 已知限制，端口转发方式（方式一）不受此影响，请优先使用它验证。
 ```
 
-## 九、Terraform State 变化
+## 九、Minikube Dashboard（Web UI）
+
+Minikube 内置了 Kubernetes Dashboard。除了使用 `kubectl get ...` 查看资源，
+也可以直接在浏览器里用图形界面观察本章创建的 Kubernetes 资源及其状态。
+
+最简单的启动方式：
+
+```powershell
+minikube dashboard
+```
+
+该命令会启动 Dashboard 的本地代理，并自动打开默认浏览器。
+使用 Dashboard 期间请保持这个 PowerShell 窗口运行；结束时按 `Ctrl+C`
+即可停止本地代理（不会停止 Minikube 集群）。
+
+本仓库也提供了辅助脚本：
+
+```powershell
+.\scripts\open-dashboard.ps1
+```
+
+打开 Dashboard 后，在界面中把 Namespace 切换为：
+
+```text
+terraform-learning
+```
+
+然后可以查看本章创建的主要资源：
+
+- **Workloads / Deployments**：查看 `web` Deployment、副本数、滚动更新状态；
+- **Pods**：查看两个 nginx Pod 是否为 Running，以及重启次数和事件；
+- **Services**：查看 `web` ClusterIP Service、端口与 selector；
+- **ConfigMaps**：查看 `web-content`；
+- **Secrets**：查看 `app-secret` 的对象状态（敏感值不会直接作为普通明文展示）；
+- **PersistentVolumeClaims**：查看 `web-data` 是否为 Bound；
+- **Ingresses**：查看 `web` Ingress、Host 和后端 Service；
+- **Events**：排查 Pending、CrashLoopBackOff、镜像拉取失败、探针失败等问题。
+
+如果不希望自动打开浏览器，只想取得 Dashboard URL：
+
+```powershell
+minikube dashboard --url
+```
+
+如果还想在 Dashboard 中辅助观察 CPU / 内存指标，可以启用
+`metrics-server` addon：
+
+```powershell
+minikube addons enable metrics-server
+```
+
+或者直接使用本仓库脚本：
+
+```powershell
+.\scripts\open-dashboard.ps1 -EnableMetrics
+```
+
+> Dashboard 是观察和排障工具，不会替代 Terraform State。建议同时对照
+> `terraform state list`、`kubectl get ...` 和 Dashboard，理解
+> Terraform、Kubernetes API 与实际运行资源之间的关系。
+
+## 十、Terraform State 变化
 
 ```bash
 terraform state list
@@ -133,7 +195,7 @@ terraform state show kubernetes_deployment.web
 这也是为什么"仅仅修改镜像 tag"这种小改动，`plan` 也能精确计算出
 "只需要更新这一个字段"，而不是把整个资源标记为需要重建。
 
-## 十、Destroy
+## 十一、Destroy
 
 ```bash
 terraform destroy
@@ -144,7 +206,7 @@ terraform destroy
 一起清理，运行 `minikube delete`，但这会影响其他章节共用的同一个集群，
 请谨慎操作）。
 
-## 十一、常见错误
+## 十二、常见错误
 
 | 现象 | 原因 | 解决方法 |
 |---|---|---|
@@ -154,7 +216,7 @@ terraform destroy
 | `nginx.ingress.kubernetes.io/rewrite-target` 相关报错 | ingress-nginx Controller 还没就绪，Ingress 资源和 IngressClass 不匹配 | `kubectl get pods -n ingress-nginx`，确认 Controller Pod 是 Running |
 | kubectl 显示的 context 不是 minikube | 系统里同时存在其他集群 context（比如 Kind） | `kubectl config use-context minikube`，或直接依赖本章 provider 配置里显式指定的 `config_context`（Terraform 自身不受 kubectl 当前 context 影响） |
 
-## 十二、思考题
+## 十三、思考题
 
 1. 为什么 Secret 用 `secret_key_ref` 注入，而不是直接在 Deployment 里
    写 `env { value = var.api_key }`？两者在 State 里的敏感性有区别吗？
@@ -165,7 +227,7 @@ terraform destroy
 4. Ingress 和 Service 都能"路由流量"，为什么不能只用 Service 的
    `NodePort` 类型对外暴露，而要额外引入 Ingress？
 
-## 十三、动手练习
+## 十四、动手练习
 
 1. 修改 `welcome_message` 变量，重新 `apply`，用端口转发验证页面内容变化。
 2. 故意把 `storage_class` 改成一个不存在的名字（比如 `"does-not-exist"`），
@@ -178,7 +240,7 @@ terraform destroy
    小到不够 nginx 启动），观察 Pod 进入 `OOMKilled` / `CrashLoopBackOff`
    状态，然后改回合理值。
 
-## 十四、进阶挑战
+## 十五、进阶挑战
 
 1. 把 `ingress_host` 改造成支持多个域名/路径规则的列表，
    用 `dynamic "rule"` 生成多条 Ingress 规则。
