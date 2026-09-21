@@ -6,8 +6,15 @@
 ## 一、本章目标
 
 第一次用 Terraform 管理**真正的 Kubernetes 集群**（Minikube 提供的单节点集群）。
-本章会创建 Namespace / ConfigMap / Secret / PersistentVolumeClaim / Deployment /
-Service / Ingress 共 7 类 Kubernetes 对象，组成一个完整可访问的小应用。
+本章会创建一个完整可访问的小应用，并额外创建一组专门用于 Kubernetes Dashboard 学习的资源。
+除了 Namespace / ConfigMap / Secret / PVC / Deployment / Service / Ingress 之外，
+还会覆盖 Pod / StatefulSet / DaemonSet / Job / CronJob / NodePort / ServiceAccount /
+Role / RoleBinding / ClusterRole / ClusterRoleBinding / ResourceQuota / LimitRange /
+NetworkPolicy / PodDisruptionBudget / HorizontalPodAutoscaler 等常见对象。
+
+另外，ReplicaSet / EndpointSlice / PersistentVolume / ControllerRevision 等对象会由
+Kubernetes Controller 或 Minikube 自动派生出来，因此不需要全部手工写成 Terraform 资源。
+这样可以同时学习“Terraform 直接管理的对象”和“Kubernetes 根据控制器关系自动生成的对象”。
 
 ## 二、架构图
 
@@ -65,7 +72,8 @@ flowchart TB
 ├── README.md
 ├── versions.tf              <- kubernetes provider 配置（含 config_context 讲解）
 ├── variables.tf
-├── main.tf                  <- Namespace/ConfigMap/Secret/PVC/Deployment/Service/Ingress
+├── main.tf                  <- Web 应用主线：Namespace/ConfigMap/Secret/PVC/Deployment/Service/Ingress
+├── dashboard-resources.tf   <- Dashboard 学习资源：Pod/StatefulSet/DaemonSet/Job/CronJob/RBAC/HPA 等
 ├── outputs.tf
 ├── terraform.tfvars.example
 └── scripts/
@@ -123,7 +131,61 @@ terraform output curl_via_ingress_command
 # 已知限制，端口转发方式（方式一）不受此影响，请优先使用它验证。
 ```
 
-## 九、Minikube Dashboard（Web UI）
+## 九、Dashboard 资源覆盖范围
+
+本章现在专门增加了 `dashboard-resources.tf`，用于尽量覆盖 Dashboard 中常见的 Kubernetes 对象。
+官方文档说明 Dashboard 会显示“most Kubernetes object kinds”，具体可见菜单会随 Kubernetes /
+Dashboard 版本、RBAC 权限和启用的 addon 改变，因此这里采用“覆盖常见内建对象 + 展示自动派生对象”的方式。
+
+| 分类 | 本章可观察资源 | 创建方式 |
+|---|---|---|
+| Cluster / Admin | Namespace | Terraform |
+| Cluster / Admin | Node | Minikube 自动提供 |
+| Storage | StorageClass `standard` | Minikube addon |
+| Storage | PersistentVolumeClaim | Terraform |
+| Storage | PersistentVolume | PVC 动态供给后自动生成 |
+| Workloads | Deployment | Terraform |
+| Workloads | ReplicaSet | Deployment 自动生成 |
+| Workloads | Pod | Deployment / StatefulSet / DaemonSet / Job 自动生成，另有 standalone Pod |
+| Workloads | StatefulSet | Terraform |
+| Workloads | DaemonSet | Terraform |
+| Workloads | Job | Terraform |
+| Workloads | CronJob | Terraform |
+| Workloads | ControllerRevision | StatefulSet / DaemonSet 自动生成 |
+| Services | ClusterIP Service | Terraform |
+| Services | NodePort Service | Terraform |
+| Services | Headless Service | Terraform |
+| Services | Ingress | Terraform |
+| Services | EndpointSlice | Service 自动生成 |
+| Config | ConfigMap | Terraform |
+| Config | Secret | Terraform |
+| Access Control | ServiceAccount | Terraform |
+| Access Control | Role / RoleBinding | Terraform |
+| Access Control | ClusterRole / ClusterRoleBinding | Terraform |
+| Policy | ResourceQuota | Terraform |
+| Policy | LimitRange | Terraform |
+| Policy | NetworkPolicy | Terraform |
+| Availability | PodDisruptionBudget | Terraform |
+| Autoscaling | HorizontalPodAutoscaler v2 | Terraform；指标需要 metrics-server |
+| Events / Logs | Events、Pod Logs | Kubernetes 自动产生 / Dashboard 查看 |
+
+可以用下面的命令一次性确认大部分资源：
+
+```powershell
+kubectl get all -n terraform-learning
+kubectl get configmap,secret,pvc,resourcequota,limitrange,serviceaccount -n terraform-learning
+kubectl get role,rolebinding,networkpolicy,poddisruptionbudget,hpa -n terraform-learning
+kubectl get statefulset,daemonset,job,cronjob -n terraform-learning
+kubectl get ingress,endpointslice -n terraform-learning
+kubectl get clusterrole,clusterrolebinding | Select-String terraform-learning
+kubectl get pv,storageclass
+```
+
+> 注意：并不是所有 Kubernetes API 资源都适合在这一章手工创建。例如 Node 由 Minikube 提供，
+> ReplicaSet/EndpointSlice/ControllerRevision 是控制器派生对象，PersistentVolume 通常由
+> StorageClass + PVC 动态供给。强行手工创建这些对象反而会掩盖 Kubernetes Controller 的工作机制。
+
+## 十、Minikube Dashboard（Web UI）
 
 Minikube 内置了 Kubernetes Dashboard。除了使用 `kubectl get ...` 查看资源，
 也可以直接在浏览器里用图形界面观察本章创建的 Kubernetes 资源及其状态。
@@ -142,6 +204,12 @@ minikube dashboard
 
 ```powershell
 .\scripts\open-dashboard.ps1
+```
+
+为了让 HPA 和 Dashboard 更完整地显示 CPU / 内存指标，推荐本章直接使用：
+
+```powershell
+.\scripts\open-dashboard.ps1 -EnableMetrics
 ```
 
 打开 Dashboard 后，在界面中把 Namespace 切换为：
@@ -184,7 +252,7 @@ minikube addons enable metrics-server
 > `terraform state list`、`kubectl get ...` 和 Dashboard，理解
 > Terraform、Kubernetes API 与实际运行资源之间的关系。
 
-## 十、Terraform State 变化
+## 十一、Terraform State 变化
 
 ```bash
 terraform state list
@@ -195,7 +263,7 @@ terraform state show kubernetes_deployment.web
 这也是为什么"仅仅修改镜像 tag"这种小改动，`plan` 也能精确计算出
 "只需要更新这一个字段"，而不是把整个资源标记为需要重建。
 
-## 十一、Destroy
+## 十二、Destroy
 
 ```bash
 terraform destroy
@@ -206,7 +274,7 @@ terraform destroy
 一起清理，运行 `minikube delete`，但这会影响其他章节共用的同一个集群，
 请谨慎操作）。
 
-## 十二、常见错误
+## 十三、常见错误
 
 | 现象 | 原因 | 解决方法 |
 |---|---|---|
@@ -216,7 +284,7 @@ terraform destroy
 | `nginx.ingress.kubernetes.io/rewrite-target` 相关报错 | ingress-nginx Controller 还没就绪，Ingress 资源和 IngressClass 不匹配 | `kubectl get pods -n ingress-nginx`，确认 Controller Pod 是 Running |
 | kubectl 显示的 context 不是 minikube | 系统里同时存在其他集群 context（比如 Kind） | `kubectl config use-context minikube`，或直接依赖本章 provider 配置里显式指定的 `config_context`（Terraform 自身不受 kubectl 当前 context 影响） |
 
-## 十三、思考题
+## 十四、思考题
 
 1. 为什么 Secret 用 `secret_key_ref` 注入，而不是直接在 Deployment 里
    写 `env { value = var.api_key }`？两者在 State 里的敏感性有区别吗？
@@ -227,7 +295,7 @@ terraform destroy
 4. Ingress 和 Service 都能"路由流量"，为什么不能只用 Service 的
    `NodePort` 类型对外暴露，而要额外引入 Ingress？
 
-## 十四、动手练习
+## 十五、动手练习
 
 1. 修改 `welcome_message` 变量，重新 `apply`，用端口转发验证页面内容变化。
 2. 故意把 `storage_class` 改成一个不存在的名字（比如 `"does-not-exist"`），
@@ -240,7 +308,7 @@ terraform destroy
    小到不够 nginx 启动），观察 Pod 进入 `OOMKilled` / `CrashLoopBackOff`
    状态，然后改回合理值。
 
-## 十五、进阶挑战
+## 十六、进阶挑战
 
 1. 把 `ingress_host` 改造成支持多个域名/路径规则的列表，
    用 `dynamic "rule"` 生成多条 Ingress 规则。
