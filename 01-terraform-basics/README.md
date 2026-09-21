@@ -164,9 +164,64 @@ terraform console
 # 查看当前用到的 Provider
 terraform providers
 
-# 导出依赖图（DOT 格式；如果安装了 Graphviz 可以进一步转成图片）
+# 导出依赖图（DOT 格式）
 terraform graph
 ```
+
+### 把 Terraform 依赖图转换成图片（需要 Graphviz）
+
+`terraform graph` 输出的是 Graphviz 的 **DOT 格式文本**，它本身不是 PNG/JPG 图片。
+如果想把依赖关系真正显示成图片，需要先安装 **Graphviz**。
+
+Windows 可以直接在 PowerShell 中安装：
+
+```powershell
+winget install Graphviz.Graphviz
+```
+
+安装完成后，请关闭当前 PowerShell 窗口并重新打开，然后确认 `dot` 命令可用：
+
+```powershell
+dot -V
+```
+
+如果能看到 Graphviz 的版本信息，就可以生成依赖图。
+
+先把 Terraform 依赖关系保存为 DOT 文件：
+
+```powershell
+terraform graph > graph.dot
+```
+
+生成 PNG 图片：
+
+```powershell
+dot -Tpng graph.dot -o graph.png
+start graph.png
+```
+
+也可以生成 SVG：
+
+```powershell
+dot -Tsvg graph.dot -o graph.svg
+start graph.svg
+```
+
+完整流程：
+
+```powershell
+terraform graph > graph.dot
+dot -Tpng graph.dot -o graph.png
+start graph.png
+```
+
+如果出现：
+
+```text
+dot : The term 'dot' is not recognized...
+```
+
+通常表示 Graphviz 尚未安装，或者已经安装但 `dot.exe` 所在目录还没有加入 `PATH`。
 
 ## 九、Terraform State 变化
 
