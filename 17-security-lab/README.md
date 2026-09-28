@@ -244,17 +244,13 @@ LOCAL-LAB-SECRET
 
 ## 九、Lab 4：从防守方查看日志
 
-打开另一个 PowerShell：
+打开另一个 PowerShell，直接跟踪 target 容器输出的 Nginx access log：
 
 ```powershell
-docker compose exec target sh
+docker compose logs -f target
 ```
 
-查看 Nginx 日志：
-
-```sh
-tail -f /var/log/nginx/access.log
-```
+官方 Nginx 容器会把 access/error log 输出到容器 stdout/stderr，因此用 `docker compose logs` 最稳定。
 
 然后再次从 attacker 请求：
 
@@ -336,7 +332,7 @@ HTTP/1.1 403 Forbidden
 现在重新看日志：
 
 ```powershell
-docker compose exec target tail -n 20 /var/log/nginx/access.log
+docker compose logs --tail 20 target
 ```
 
 你会看到同一个路径从原来的：
