@@ -1,0 +1,2 @@
+LOCAL-LAB-SECRET
+This file exists only to demonstrate unintended information exposure in an isolated local lab.
