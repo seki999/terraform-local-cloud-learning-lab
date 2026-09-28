@@ -32,7 +32,7 @@ flowchart TD
 | `10-networking/` | 网络怎么搭、怎么路由、怎么隔离 |
 | `15-protocol-stack/` | 数据以什么协议格式通信 |
 | `16-network-commands/` | 怎么观察、配置、验证、排障 |
-| `17-security-lab/` | 怎样在本地隔离靶场中做资产发现、暴露验证、日志取证、加固与复测 |
+| `17-security-lab/` | 14 个本地安全实验：Threat Model、Recon、HTTP 暴露、抓包、日志检测、防火墙、认证授权、TLS、容器加固、Kubernetes NetworkPolicy/RBAC、IaC 安全、事件响应、Purple Team 综合实验 |
 
 ## Network Command Toolbox 建议顺序
 
@@ -55,7 +55,7 @@ flowchart TD
 
 ```text
 17-security-lab/
-Recon -> Service Discovery -> Exposure Validation -> Logs -> Packet Capture -> Hardening -> Re-test
+Threat Model -> Recon -> Exposure -> Packet Capture -> Detection -> Firewall -> Auth -> TLS -> Container -> Kubernetes -> IaC -> Incident Response -> Purple Team
 ```
 
 ## 网络命令与协议的关系
