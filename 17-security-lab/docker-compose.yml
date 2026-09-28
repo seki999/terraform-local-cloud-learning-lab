@@ -1,0 +1,21 @@
+services:
+  target:
+    build:
+      context: ./target
+    container_name: local-security-target
+    ports:
+      - "127.0.0.1:18080:80"
+    networks:
+      - security_lab
+
+  attacker:
+    image: nicolaka/netshoot:latest
+    container_name: local-security-attacker
+    command: ["sleep", "infinity"]
+    networks:
+      - security_lab
+
+networks:
+  security_lab:
+    driver: bridge
+    internal: true
