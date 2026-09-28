@@ -1,6 +1,6 @@
 # 00 - 学习路线总览（Learning Roadmap）
 
-本路线把真实本地基础设施、协议栈与网络命令一起放进主线。
+本路线把真实本地基础设施、协议栈、网络命令与本地安全攻防验证一起放进主线。
 
 ## 主线
 
@@ -15,13 +15,14 @@ flowchart TD
     N["Networking\nRouting / Firewall / NAT / LB"]
     P["Protocol Stack\nTCP / DNS / TLS / HTTP / SNMP / Syslog"]
     C["Network Commands\nip / ping / dig / ss / curl / tcpdump"]
+    SEC["Local Security Lab\nRecon / Logs / Hardening / Re-test"]
     S8["Monitoring"]
     S9["Vault"]
     S10["Modules"]
     S11["State"]
     S12["Full Local Cloud"]
 
-    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> N --> P --> C --> S8 --> S9 --> S10 --> S11 --> S12
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> N --> P --> C --> SEC --> S8 --> S9 --> S10 --> S11 --> S12
 ```
 
 ## 三个网络专题分别解决什么
@@ -31,6 +32,7 @@ flowchart TD
 | `10-networking/` | 网络怎么搭、怎么路由、怎么隔离 |
 | `15-protocol-stack/` | 数据以什么协议格式通信 |
 | `16-network-commands/` | 怎么观察、配置、验证、排障 |
+| `17-security-lab/` | 怎样在本地隔离靶场中做资产发现、暴露验证、日志取证、加固与复测 |
 
 ## Network Command Toolbox 建议顺序
 
@@ -47,6 +49,13 @@ flowchart TD
 09 Wi-Fi
 10 Performance
 11 Cheatsheet
+```
+
+完成 Network Command Toolbox 后建议进入：
+
+```text
+17-security-lab/
+Recon -> Service Discovery -> Exposure Validation -> Logs -> Packet Capture -> Hardening -> Re-test
 ```
 
 ## 网络命令与协议的关系
@@ -102,6 +111,9 @@ pktmon
 - 用 `tcpdump` / Wireshark 找到 packet evidence。
 - 用 `nft` / Windows Firewall 命令定位 policy 问题。
 - 用 `iperf3` 区分局域网性能与互联网性能。
+- 在本地隔离靶场中用 `nmap` / `curl` 发现服务并验证错误暴露。
+- 从 Nginx access log 与 `tcpdump` 找到攻击验证留下的证据。
+- 完成访问控制加固后，用相同测试重新验证修复确实生效。
 
 ## 推荐学习方法
 

@@ -1,6 +1,6 @@
 # Terraform Local Cloud Learning Lab
 
-> 一个完全在本地运行、尽量不依赖真实收费云的 **Terraform + Kubernetes + Docker + Linux Networking + Protocol Stack + Network Commands + DevOps 中文实践课程**。
+> 一个完全在本地运行、尽量不依赖真实收费云的 **Terraform + Kubernetes + Docker + Linux Networking + Protocol Stack + Network Commands + Local Security + DevOps 中文实践课程**。
 
 ## 项目定位
 
@@ -20,6 +20,7 @@
 - Prometheus / Grafana / Loki
 - Vault
 - Terraform Module / State / Testing
+- Local Security Lab：资产发现、服务枚举、日志、抓包、加固、复测
 
 `07-localstack/` 仍然保留，但现在是**可选的 AWS API 模拟专题**。即使不安装或不购买 LocalStack 的商业功能，主线课程和毕业实验仍然可以完成。
 
@@ -35,6 +36,7 @@
 | 可重复 | Terraform 管理的实验应能 apply / verify / destroy |
 | 云概念映射 | 每个本地组件都解释它与 VPC/Subnet/Route/NAT/LB/VPN 等概念的关系 |
 | 排障优先 | 不只学习“怎么配”，还要学习“坏了怎么查” |
+| 攻防闭环 | 安全实验只针对本地隔离靶场，按 Attack -> Detect -> Harden -> Re-test 学习 |
 
 ## 学习路线
 
@@ -49,6 +51,7 @@ Stage 6   Helm                          06-helm/
 Core A    Linux / Cloud Networking      10-networking/
 Core B    Protocol Stack                15-protocol-stack/
 Core C    Network Command Toolbox       16-network-commands/
+Core D    Local Security Lab            17-security-lab/
 
 Stage 8   Monitoring                    08-monitoring/
 Stage 9   Vault                         09-vault/
@@ -94,7 +97,15 @@ powershell -ExecutionPolicy Bypass -File .\scripts\preflight.ps1
 
 > 我怎样在 Windows/Linux 里观察、验证、配置和排查这些网络现象？
 
-这三部分应配合学习。
+这三部分应配合学习。完成后进入 `17-security-lab/`，把前面的网络、协议、命令知识用于本地隔离靶场中的攻防验证。
+
+### 17-security-lab
+
+回答：
+
+> 攻击者如何发现本地服务、验证错误暴露？防守方如何从日志和抓包看到证据、完成加固并重新验证？
+
+本专题仅针对仓库自行创建的本地隔离容器环境。
 
 ## Network Command Toolbox
 
@@ -183,10 +194,12 @@ tcpdump / Wireshark
 
 仓库里的 Token、密码、API Key、SNMP community 等均为本地教学占位值，不应在生产环境复用。
 
+`17-security-lab/` 的扫描、请求与攻防验证只应针对本仓库创建的本地隔离容器，不应用于任何未明确授权的真实系统。
+
 ## 项目方向
 
 这个项目现在更接近一个：
 
-> **Terraform + Kubernetes + Linux Networking + Protocol Engineering + Network Troubleshooting + Local Cloud Learning Lab**
+> **Terraform + Kubernetes + Linux Networking + Protocol Engineering + Network Troubleshooting + Local Security + Local Cloud Learning Lab**
 
 目标不只是会部署资源，而是能够解释“一条请求从应用到网络再到后端究竟经过了什么”，并且知道应该用什么命令去证明自己的判断。
