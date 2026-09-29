@@ -81,7 +81,7 @@ Docker internal IP
 
 ## 3. 课程结构
 
-本课程分成 14 个 Lab。
+本课程现在分成 **42 个 Lab**，分为基础阶段、平台安全阶段和安全工程阶段。
 
 | Lab | 主题 | 核心问题 |
 |---|---|---|
@@ -99,6 +99,34 @@ Docker internal IP
 | 12 | Terraform / IaC Security | 如何在部署前阻止错误配置？ |
 | 13 | Incident Response | 出现异常后如何处理？ |
 | 14 | Purple Team Capstone | 如何把前面全部串起来？ |
+| 15 | Web Security Basics | 输入、会话和响应如何安全处理？ |
+| 16 | DNS Security | 名称解析如何进入信任链？ |
+| 17 | ARP / Neighbor Security | 二层邻居关系为什么重要？ |
+| 18 | Routing / Egress | Workload 能访问哪里？ |
+| 19 | Secrets Lifecycle | Secret 如何创建、轮换、撤销？ |
+| 20 | Supply Chain | 镜像和依赖从哪里来？ |
+| 21 | Kubernetes Pod Security | Pod 的 Linux 权限如何收敛？ |
+| 22 | Security Observability | 如何从 Metrics/Logs 建检测？ |
+| 23 | Backup / Recovery | 数据损坏后如何恢复？ |
+| 24 | Vulnerability Management | CVE 如何持续管理？ |
+| 25 | Zero Trust | 为什么不能因为“在内网”就信任？ |
+| 26 | Cloud Security Mapping | 本地控制如何映射到云？ |
+| 27 | Secure SDLC | 如何把安全前移到开发流程？ |
+| 28 | CI/CD Security | Pipeline 为什么是高价值资产？ |
+| 29 | Linux Host Hardening | Linux Host 如何建立安全基线？ |
+| 30 | Windows Host Security | Windows/WSL/Docker 边界如何保护？ |
+| 31 | Cryptography / Key Mgmt | Hash、Encryption、Signature 如何区分？ |
+| 32 | Compliance / Controls | 如何证明安全控制持续有效？ |
+| 33 | Architecture Review | 不运行攻击工具如何发现设计风险？ |
+| 34 | Advanced Capstone | 如何设计完整本地安全平台？ |
+| 35 | API Security | API 身份、对象授权、限流如何设计？ |
+| 36 | Database Security | DB 如何做网络与权限最小化？ |
+| 37 | File/Data Protection | 文件、Volume、日志权限如何保护？ |
+| 38 | Network IDS | 如何建立流量基线和检测？ |
+| 39 | EDR Basics | 主机进程证据如何进入事件时间线？ |
+| 40 | Threat Intelligence | IOC 与行为情报如何使用？ |
+| 41 | Risk Assessment | 安全问题如何排优先级？ |
+| 42 | Tabletop Exercise | 如何不运行攻击也完成事件演练？ |
 
 ---
 
@@ -176,7 +204,35 @@ Infrastructure as Code Security
 │   ├── 11-kubernetes-rbac-and-secrets.md
 │   ├── 12-terraform-and-iac-security.md
 │   ├── 13-incident-response.md
-│   └── 14-capstone-purple-team.md
+│   ├── 14-capstone-purple-team.md
+│   ├── 15-web-security-basics.md
+│   ├── 16-dns-security-and-name-resolution.md
+│   ├── 17-layer2-arp-and-neighbor-security.md
+│   ├── 18-routing-security-and-egress-control.md
+│   ├── 19-secrets-and-credential-lifecycle.md
+│   ├── 20-software-supply-chain-and-image-security.md
+│   ├── 21-kubernetes-pod-security.md
+│   ├── 22-observability-metrics-and-security-alerting.md
+│   ├── 23-backup-recovery-and-ransomware-resilience.md
+│   ├── 24-vulnerability-management.md
+│   ├── 25-zero-trust-and-identity-centric-security.md
+│   ├── 26-cloud-security-mapping.md
+│   ├── 27-secure-sdlc-and-code-review.md
+│   ├── 28-cicd-pipeline-security.md
+│   ├── 29-linux-host-hardening-and-audit.md
+│   ├── 30-windows-host-security-basics.md
+│   ├── 31-cryptography-and-key-management.md
+│   ├── 32-security-compliance-and-controls-mapping.md
+│   ├── 33-security-architecture-review.md
+│   ├── 34-advanced-capstone-security-platform.md
+│   ├── 35-api-security.md
+│   ├── 36-database-security.md
+│   ├── 37-file-permissions-and-data-protection.md
+│   ├── 38-network-ids-and-traffic-baselines.md
+│   ├── 39-endpoint-detection-and-response-basics.md
+│   ├── 40-threat-intelligence-and-ioc-basics.md
+│   ├── 41-risk-assessment-and-prioritization.md
+│   └── 42-tabletop-exercise.md
 ├── examples/
 │   ├── docker-compose.hardened.yml
 │   ├── kubernetes-networkpolicy.yaml
@@ -186,7 +242,9 @@ Infrastructure as Code Security
 │   └── verify-lab.ps1
 └── docs/
     ├── security-glossary.md
-    └── security-report-template.md
+    ├── security-report-template.md
+    ├── security-learning-workbook.md
+    └── security-command-and-troubleshooting-reference.md
 ```
 
 ---
@@ -491,6 +549,76 @@ Asset Inventory
  -> Incident Response
  -> Final Report
 ```
+
+---
+
+## 6.1 第二阶段：Lab 15～42
+
+Lab 15～42 把课程从“本地攻防基础”继续扩展到完整安全工程体系：
+
+```text
+Web / API / Database
+DNS / ARP / Routing / Egress
+Secrets / Cryptography
+Supply Chain / Vulnerability Management
+Container / Kubernetes Pod Security
+Observability / IDS / EDR
+Backup / Recovery
+Zero Trust / Cloud Security
+Secure SDLC / CI/CD
+Linux / Windows Host Security
+Compliance / Risk / Architecture Review
+Tabletop Exercise
+```
+
+推荐分组：
+
+### A. 应用与数据安全
+- [Lab 15 - Web Security](labs/15-web-security-basics.md)
+- [Lab 35 - API Security](labs/35-api-security.md)
+- [Lab 36 - Database Security](labs/36-database-security.md)
+- [Lab 37 - File/Data Protection](labs/37-file-permissions-and-data-protection.md)
+
+### B. 网络深水区
+- [Lab 16 - DNS Security](labs/16-dns-security-and-name-resolution.md)
+- [Lab 17 - ARP / Neighbor](labs/17-layer2-arp-and-neighbor-security.md)
+- [Lab 18 - Routing / Egress](labs/18-routing-security-and-egress-control.md)
+- [Lab 38 - Network IDS](labs/38-network-ids-and-traffic-baselines.md)
+
+### C. 身份、Secret 与密码学
+- [Lab 19 - Secret Lifecycle](labs/19-secrets-and-credential-lifecycle.md)
+- [Lab 25 - Zero Trust](labs/25-zero-trust-and-identity-centric-security.md)
+- [Lab 31 - Cryptography / Key Management](labs/31-cryptography-and-key-management.md)
+
+### D. 平台与供应链
+- [Lab 20 - Software Supply Chain](labs/20-software-supply-chain-and-image-security.md)
+- [Lab 21 - Kubernetes Pod Security](labs/21-kubernetes-pod-security.md)
+- [Lab 24 - Vulnerability Management](labs/24-vulnerability-management.md)
+- [Lab 28 - CI/CD Security](labs/28-cicd-pipeline-security.md)
+
+### E. 主机与运营
+- [Lab 22 - Security Observability](labs/22-observability-metrics-and-security-alerting.md)
+- [Lab 23 - Backup / Recovery](labs/23-backup-recovery-and-ransomware-resilience.md)
+- [Lab 29 - Linux Hardening](labs/29-linux-host-hardening-and-audit.md)
+- [Lab 30 - Windows Security](labs/30-windows-host-security-basics.md)
+- [Lab 39 - EDR Basics](labs/39-endpoint-detection-and-response-basics.md)
+
+### F. 安全工程与治理
+- [Lab 26 - Cloud Security Mapping](labs/26-cloud-security-mapping.md)
+- [Lab 27 - Secure SDLC](labs/27-secure-sdlc-and-code-review.md)
+- [Lab 32 - Compliance / Controls](labs/32-security-compliance-and-controls-mapping.md)
+- [Lab 33 - Architecture Review](labs/33-security-architecture-review.md)
+- [Lab 40 - Threat Intelligence](labs/40-threat-intelligence-and-ioc-basics.md)
+- [Lab 41 - Risk Assessment](labs/41-risk-assessment-and-prioritization.md)
+- [Lab 42 - Tabletop Exercise](labs/42-tabletop-exercise.md)
+
+### G. 第二阶段综合实验
+- [Lab 34 - Advanced Security Platform Capstone](labs/34-advanced-capstone-security-platform.md)
+
+配套学习材料：
+
+- [Security Learning Workbook](docs/security-learning-workbook.md)
+- [Security Command & Troubleshooting Reference](docs/security-command-and-troubleshooting-reference.md)
 
 ---
 
