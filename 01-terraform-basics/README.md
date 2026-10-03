@@ -168,6 +168,32 @@ terraform providers
 terraform graph
 ```
 
+### Windows PowerShell 中文输出乱码
+
+如果 `terraform plan`、`terraform apply`、`terraform output` 或其他命令输出中文时出现乱码，可以先执行仓库提供的 UTF-8 初始化脚本：
+
+```powershell
+..\scripts\enable-utf8.ps1
+```
+
+然后确认当前会话使用 UTF-8：
+
+```powershell
+chcp
+[Console]::OutputEncoding
+```
+
+其中代码页应为 `65001`，输出编码应为 UTF-8。之后再运行 Terraform：
+
+```powershell
+terraform plan
+terraform output
+```
+
+如果终端已经是 UTF-8，但打开 `.tf` / `.md` 文件仍然看到类似 `窶`、`縺`、`譁` 的字符，说明乱码已经写进文件本身。此时需要恢复文件原文，仅修改终端编码无法逆转已经损坏的文本。
+
+本仓库根目录的 `.editorconfig` 已指定 `charset = utf-8`，VS Code 等支持 EditorConfig 的编辑器会据此保存文本文件。
+
 ### 把 Terraform 依赖图转换成图片（需要 Graphviz）
 
 `terraform graph` 输出的是 Graphviz 的 **DOT 格式文本**，它本身不是 PNG/JPG 图片。
