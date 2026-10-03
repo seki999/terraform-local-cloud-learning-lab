@@ -187,13 +187,49 @@ dot -V
 
 如果能看到 Graphviz 的版本信息，就可以生成依赖图。
 
-先把 Terraform 依赖关系保存为 DOT 文件：
+### Windows PowerShell 的编码注意事项
+
+如果你使用的是 Windows 自带的 **Windows PowerShell 5.1**，不要直接使用：
 
 ```powershell
 terraform graph > graph.dot
 ```
 
-生成 PNG 图片：
+因为 PowerShell 5.1 的 `>` 会把重定向结果写成 **UTF-16 LE**。Graphviz 的 `dot`
+读取这种文件时，可能会在第一行报类似下面的错误：
+
+```text
+Error: graph.dot: syntax error in line 1 near 'd'
+```
+
+这里的 `d` 实际上就是 UTF-16 BOM/编码被 Graphviz 错误解释后的结果。
+
+#### 推荐方法 1：直接使用本仓库脚本
+
+在任意 Terraform 章节目录中执行：
+
+```powershell
+..\scripts\export-terraform-graph.ps1
+```
+
+脚本会生成 UTF-8（无 BOM）的 `graph.dot`，并在检测到 Graphviz 后自动生成
+`graph.png`。
+
+也可以指定输出文件：
+
+```powershell
+..\scripts\export-terraform-graph.ps1 -DotFile dependency.dot -PngFile dependency.png
+```
+
+#### 推荐方法 2：只用一条命令生成 DOT
+
+如果不想用脚本，可以让 `cmd.exe` 负责重定向，避免 PowerShell 5.1 自动转成 UTF-16：
+
+```powershell
+cmd /c "terraform graph > graph.dot"
+```
+
+然后生成 PNG：
 
 ```powershell
 dot -Tpng graph.dot -o graph.png
@@ -210,9 +246,15 @@ start graph.svg
 完整流程：
 
 ```powershell
-terraform graph > graph.dot
+cmd /c "terraform graph > graph.dot"
 dot -Tpng graph.dot -o graph.png
 start graph.png
+```
+
+如果你使用的是 PowerShell 7，也可以显式写成 UTF-8 无 BOM：
+
+```powershell
+terraform graph | Set-Content -Encoding utf8NoBOM graph.dot
 ```
 
 如果出现：
