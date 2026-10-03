@@ -77,6 +77,91 @@ powershell -ExecutionPolicy Bypass -File .\scripts\preflight.ps1
 
 完整清单见 [docs/11-local-run-checklist.md](docs/11-local-run-checklist.md)。
 
+## 重置学习环境（清空本地生成内容）
+
+如果你想把本地实验环境恢复到“尚未执行 Terraform”的状态，可以使用仓库自带的安全清理脚本：
+
+```powershell
+.\scripts\reset-lab.ps1
+```
+
+默认会递归清理：
+
+```text
+.terraform/
+generated/
+terraform.tfstate
+terraform.tfstate.backup
+tfplan
+*.tfplan
+graph.dot
+graph.png
+graph.svg
+dependency.dot
+dependency.png
+dependency.svg
+```
+
+默认会保留：
+
+```text
+*.tf
+*.md
+scripts/
+.terraform.lock.hcl
+terraform.tfvars.example
+```
+
+也就是说，它主要删除 Terraform 缓存、State、实验生成文件和 Graphviz 输出，不会删除课程源码。
+
+### 先预览，不实际删除
+
+如果想先确认脚本会删除什么：
+
+```powershell
+.\scripts\reset-lab.ps1 -WhatIf
+```
+
+### 连 terraform.tfvars 一起删除
+
+如果你还想把自己创建的本地变量文件也恢复掉：
+
+```powershell
+.\scripts\reset-lab.ps1 -RemoveTfvars
+```
+
+也可以先预览：
+
+```powershell
+.\scripts\reset-lab.ps1 -RemoveTfvars -WhatIf
+```
+
+### 只重置某一个章节
+
+例如只重置第一章：
+
+```powershell
+.\scripts\reset-lab.ps1 -Path .\01-terraform-basics
+```
+
+或者：
+
+```powershell
+cd .\01-terraform-basics
+..\scripts\reset-lab.ps1 -Path .
+```
+
+清理完成后，可以重新开始：
+
+```powershell
+cd .\01-terraform-basics
+terraform init
+terraform validate
+terraform plan
+```
+
+> 注意：`reset-lab.ps1` 是“安全重置”，不会执行 `git reset --hard` 或 `git clean -fdx`。如果本地源码本身被修改，它不会帮你恢复源码，这样可以避免误删尚未提交的代码。
+
 ## Windows / PowerShell 中文乱码与 UTF-8
 
 如果 Terraform、kubectl、Docker 等命令的输出包含中文，而 Windows PowerShell 中显示乱码，先在当前终端执行：
