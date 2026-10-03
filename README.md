@@ -77,6 +77,34 @@ powershell -ExecutionPolicy Bypass -File .\scripts\preflight.ps1
 
 完整清单见 [docs/11-local-run-checklist.md](docs/11-local-run-checklist.md)。
 
+## Windows / PowerShell 中文乱码与 UTF-8
+
+如果 Terraform、kubectl、Docker 等命令的输出包含中文，而 Windows PowerShell 中显示乱码，先在当前终端执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\enable-utf8.ps1
+```
+
+脚本会把当前 PowerShell 会话的输入/输出编码和 `$OutputEncoding` 设置为 UTF-8，并把 Windows 控制台代码页切换到 `65001`。之后再执行：
+
+```powershell
+terraform plan
+terraform apply
+terraform output
+```
+
+仓库根目录同时提供 `.editorconfig`，用于让支持 EditorConfig 的编辑器默认以 UTF-8 保存 Terraform、Markdown、PowerShell 等文本文件。
+
+> 注意：如果文件内容本身已经保存成乱码（例如源码中已经出现 `窶`、`縺`、`譁` 等字符），切换终端到 UTF-8 不会自动恢复原文，需要从 Git 历史或正确原文恢复文件内容。
+
+Terraform 依赖图不要在 Windows PowerShell 5.1 中直接使用 `terraform graph > graph.dot`。请使用：
+
+```powershell
+.\scripts\export-terraform-graph.ps1
+```
+
+它会以 UTF-8 无 BOM 写出 DOT 文件，并在已安装 Graphviz 时生成 PNG。
+
 ## 网络学习分成三条互补主线
 
 ### 10-networking
