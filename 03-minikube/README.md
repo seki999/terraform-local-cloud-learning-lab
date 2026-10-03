@@ -118,10 +118,27 @@ kubectl get all -n terraform-learning
 kubectl get configmap,secret,pvc -n terraform-learning
 kubectl describe pvc web-data -n terraform-learning   # 确认 STATUS 是 Bound
 
-# 方式一：端口转发（最简单、总是可行）
-terraform output port_forward_command
-# 复制输出的命令在另一个终端运行，然后：
-curl http://localhost:8080
+# 方式一：端口转发（最简单、最可靠）
+
+# 1. 查看 Terraform 输出的端口转发命令
+terraform output -raw port_forward_command
+
+# 输出类似：
+# kubectl port-forward -n terraform-learning svc/web 8080:80
+
+# 2. 在另一个 PowerShell 窗口中实际执行：
+kubectl port-forward -n terraform-learning svc/web 8080:80
+
+# 保持这个窗口运行。正常时会看到类似：
+# Forwarding from 127.0.0.1:8080 -> 80
+# Forwarding from [::1]:8080 -> 80
+
+# 3. 再开一个终端验证：
+curl.exe http://localhost:8080
+
+# 注意：terraform output 只负责打印命令，不会自动执行 kubectl port-forward。
+# 在 Windows PowerShell 中，curl 通常是 Invoke-WebRequest 的别名，
+# 因此这里显式使用 curl.exe，避免和 PowerShell 别名混淆。
 
 # 方式二：通过 Ingress 访问（需要 ingress addon 已启用）
 terraform output curl_via_ingress_command
